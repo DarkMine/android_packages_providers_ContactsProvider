@@ -422,6 +422,8 @@ public class ContactsDatabaseHelper extends SQLiteOpenHelper {
                 Tables.RAW_CONTACTS + "." + RawContacts.CONTACT_ID;
         public static final String CONCRETE_NAME_VERIFIED =
             Tables.RAW_CONTACTS + "." + RawContacts.NAME_VERIFIED;
+        public static final String CONCRETE_IS_RESTRICTED =
+                Tables.RAW_CONTACTS + "." + RawContacts.IS_RESTRICTED;
         public static final String PHONEBOOK_LABEL_PRIMARY =
             ContactsColumns.PHONEBOOK_LABEL_PRIMARY;
         public static final String PHONEBOOK_BUCKET_PRIMARY =
@@ -1035,8 +1037,7 @@ public class ContactsDatabaseHelper extends SQLiteOpenHelper {
                 RawContacts.SYNC2 + " TEXT, " +
                 RawContacts.SYNC3 + " TEXT, " +
                 RawContacts.SYNC4 + " TEXT, " +
-                 // Hack to allow Facebook contact sync to work
-                "is_restricted" + " INTEGER " +
+                RawContacts.IS_RESTRICTED + " INTEGER " +
         ");");
 
         db.execSQL("CREATE INDEX raw_contacts_contact_id_index ON " + Tables.RAW_CONTACTS + " (" +
@@ -1628,7 +1629,8 @@ public class ContactsDatabaseHelper extends SQLiteOpenHelper {
                 + RawContactsColumns.CONCRETE_SYNC1 + " AS " + RawContacts.SYNC1 + ","
                 + RawContactsColumns.CONCRETE_SYNC2 + " AS " + RawContacts.SYNC2 + ","
                 + RawContactsColumns.CONCRETE_SYNC3 + " AS " + RawContacts.SYNC3 + ","
-                + RawContactsColumns.CONCRETE_SYNC4 + " AS " + RawContacts.SYNC4;
+                + RawContactsColumns.CONCRETE_SYNC4 + " AS " + RawContacts.SYNC4 + ","
+                + RawContactsColumns.CONCRETE_IS_RESTRICTED + " AS " + RawContacts.IS_RESTRICTED;;
 
         String baseContactColumns =
                 Contacts.HAS_PHONE_NUMBER + ", "
@@ -4042,20 +4044,6 @@ public class ContactsDatabaseHelper extends SQLiteOpenHelper {
         } catch (SQLException e) {
             Log.w(TAG, "Exception upgrading contacts2.db from 803 to 804 " + e);
         }
-    }
-
-    private void addIsRestrictedColumn(SQLiteDatabase db) {
-        Cursor c = db.rawQuery("SELECT * FROM raw_contacts LIMIT 0", null);
-
-        if (c.getColumnIndex("is_restricted") != -1) {
-            Log.v(TAG, "is_restricted column already present in database");
-            return;
-        }
-
-        // Add is_restricted column
-        Log.v(TAG, "Adding is_restricted column to database");
-        db.execSQL("ALTER TABLE raw_contacts"
-                + " ADD is_restricted INTEGER;");
     }
 
     public String extractHandleFromEmailAddress(String email) {
